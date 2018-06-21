@@ -13,8 +13,8 @@ And all the essential packages are listed in `requirements.txt`, you can install
 测试数据集6000条(正向3000, 负向3000)  
 
 **2.数据处理**  
-1. 使用jieba进行分词(**去除了标点符号，停用词好像没有去除?**)  
-2. 使用预训练的词向量模型，对句子进行向量化  
+1.使用jieba进行分词(**去除了标点符号，停用词好像没有去除?**)  
+2.使用预训练的词向量模型，对句子进行向量化  
 
 ## 训练与对比(准确率)
 | Algorithm | Accuracy |

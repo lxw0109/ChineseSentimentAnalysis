@@ -1,22 +1,24 @@
 #!/usr/bin/env python3
 # coding: utf-8
-# File: bayes_sentiment.py
-# Author: lhy<lhy_in_blcu@126.com,https://huangyong.github.io>
-# Date: 18-3-20
-'''
-function:基于wordvector + 传统机器学习方法的 情感分类
-'''
+# File: naive_bayes_imp.py
+# Author: lxw
+# Date: 17-12-20
+"""
+基于词向量和Naive-Bayes的情感分类
+"""
+
 import gensim
 import numpy as np
 from sklearn.externals import joblib
 
-VECTOR_DIR = './embedding/word_vector.bin'  # 词向量模型文件
+VECTOR_DIR = "./embedding/word_vector.bin"  # 词向量模型文件
 model = gensim.models.KeyedVectors.load_word2vec_format(VECTOR_DIR, binary=False)
 
-'''基于wordvector，通过lookup table的方式找到句子的wordvector的表示'''
+
+"""基于wordvector，通过lookup table的方式找到句子的wordvector的表示"""
 def rep_sentencevector(sentence):
-    '''通过向量求和的方式标识sentence vector'''
-    word_list = [word for word in sentence.split(' ')]
+    """通过向量求和的方式标识sentence vector"""
+    word_list = [word for word in sentence.split(" ")]
     embedding_dim = 200
     embedding_matrix = np.zeros(embedding_dim)
     for index, word in enumerate(word_list):
@@ -27,41 +29,41 @@ def rep_sentencevector(sentence):
 
     return embedding_matrix/len(word_list)
 
-'''构造训练数据'''
+"""构造训练数据"""
 def build_traindata():
     X_train = list()
     Y_train = list()
     X_test = list()
     Y_test = list()
-    for line in open('./data/train.txt'):
-        line = line.strip().strip().split('\t')
+    for line in open("./data/train.txt"):
+        line = line.strip().strip().split("\t")
         sent_vector = rep_sentencevector(line[-1])
 
         X_train.append(sent_vector)
-        if line[0] == '1':
+        if line[0] == "1":
             Y_train.append(1)
         else:
             Y_train.append(0)
 
-    for line in open('./data/test.txt'):
-        line = line.strip().strip().split('\t')
+    for line in open("./data/test.txt"):
+        line = line.strip().strip().split("\t")
         sent_vector = rep_sentencevector(line[-1])
         X_test.append(sent_vector)
-        if line[0] == '1':
+        if line[0] == "1":
             Y_test.append(1)
         else:
             Y_test.append(0)
 
     return np.array(X_train), np.array(Y_train), np.array(X_test), np.array(Y_test),
 
-'''基于bayes分类器算法'''
+"""基于bayes分类器算法"""
 def train_bayes(X_train, Y_train):
     from sklearn.naive_bayes import GaussianNB
     model = GaussianNB()
     model.fit(X_train, Y_train)
-    joblib.dump(model, './model/sentiment_bayes_model.m')
+    joblib.dump(model, "./model/sentiment_bayes_model.m")
 
-'''基于bayse分类器的预测'''
+"""基于bayse分类器的预测"""
 def evaluate_bayes(model_filepath, X_test, Y_test):
     model = joblib.load(model_filepath)
     Y_predict = list()
@@ -73,28 +75,28 @@ def evaluate_bayes(model_filepath, X_test, Y_test):
         if int(Y_predict[index]) == int(Y_test[index]):
             right += 1
     score = right / len(Y_predict)
-    print('model accuray is :{0}'.format(score)) #0.7437479159719906
+    print("model accuray is :{0}".format(score)) #0.7437479159719906
     return score
 
-'''实际应用测试'''
+"""实际应用测试"""
 def predict_bayes(model_filepath):
     model = joblib.load(model_filepath)
-    sentence1 = '这个 电视 真 尼玛 垃圾 ， 老子 再也 不买 了'
-    sentence2 = '这件 衣服 真的 太 好看 了 ！ 好想 买 啊 '
+    sentence1 = "这个 电视 真 尼玛 垃圾 ， 老子 再也 不买 了"
+    sentence2 = "这件 衣服 真的 太 好看 了 ！ 好想 买 啊 "
     rep_sen1 = np.array(rep_sentencevector(sentence1)).reshape(1, -1)
     rep_sen2 = np.array(rep_sentencevector(sentence2)).reshape(1, -1)
-    print('sentence1', model.predict(rep_sen1))
-    print('sentence2', model.predict(rep_sen2))
-    '''
+    print("sentence1", model.predict(rep_sen1))
+    print("sentence2", model.predict(rep_sen2))
+    """
     sentence1 [1]
     sentence2 [1] --> 评判错误
-    '''
+    """
 
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     X_train, Y_train, X_test, Y_test = build_traindata()
-    model_filepath = './model/sentiment_bayes_model.m'
+    model_filepath = "./model/sentiment_bayes_model.m"
     #print(X_train.shape, Y_train.shape)
     #print(X_test.shape, Y_test.shape)
     #train_bayes(X_train, Y_train)

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # coding: utf-8
-# File: lstm_sentiment.py
-# Author: lhy<lhy_in_blcu@126.com,https://huangyong.github.io>
-# Date: 18-3-19
+# File: lstm_imp.py
+# Author: lxw
+# Date: 17-12-20
 import gensim
 import numpy as np
 from keras.models import load_model
