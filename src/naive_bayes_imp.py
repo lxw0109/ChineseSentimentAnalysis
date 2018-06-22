@@ -20,8 +20,8 @@ from sklearn.externals import joblib
 class NB_Implement():
     def __init__(self):
         start_time = time.time()
-        self.model = FastText("../data/input/models/sg_pyfasttext.bin")  # DEBUG
-        # self.model = FastText("../data/input/models/880w_fasttext_skip_gram.bin")
+        # self.model = FastText("../data/input/models/sg_pyfasttext.bin")  # DEBUG
+        self.model = FastText("../data/input/models/880w_fasttext_skip_gram.bin")
         end_time = time.time()
         print(f"Loading word vector model cost: {end_time - start_time:.2f}s")
 
@@ -152,14 +152,18 @@ class NB_Implement():
         model = joblib.load(model_path)
         sentence = "这件 衣服 真的 太 好看 了 ！ 好想 买 啊 "
         sent_vec = np.array(self.gen_sentence_vec(sentence)).reshape(1, -1)  # shape: (1, 1000)
+        print(f"sent_vec: {sent_vec.tolist()}")
         if self.sentence_vec_type == "concatenate":
             sent_vec = sequence.pad_sequences(sent_vec, maxlen=self.MAX_SENT_LEN * self.vector_size, value=0)
+            print(f"sent_vec: {sent_vec.tolist()}")
         print(f"'{sentence}': {model.predict(sent_vec)}")  # 1: 负向
 
         sentence = "这个 电视 真 尼玛 垃圾 ， 老子 再也 不买 了"
         sent_vec = np.array(self.gen_sentence_vec(sentence)).reshape(1, -1)
+        print(f"sent_vec: {sent_vec.tolist()}")
         if self.sentence_vec_type == "concatenate":
             sent_vec = sequence.pad_sequences(sent_vec, maxlen=self.MAX_SENT_LEN * self.vector_size, value=0)
+            print(f"sent_vec: {sent_vec.tolist()}")
         print(f"'{sentence}': {model.predict(sent_vec)}")  # 1: 负向
 
 
