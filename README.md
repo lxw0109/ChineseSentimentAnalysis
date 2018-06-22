@@ -1,5 +1,6 @@
 # Sentiment Analysis Implementations
-**Chinese Sentiment Analysis** based on ML(Machine Learning) and DL(Deep Learning) algorithms, such as Naive-Bayes, SVM, Decision-Tree, KNN, MLP, CNN, RNN(LSTM).
+基于电影评论数据的中文情感分析  
+**Chinese Sentiment Analysis** based on ML(Machine Learning) and DL(Deep Learning) algorithms, including Naive-Bayes, SVM, Decision-Tree, KNN, MLP, CNN, RNN(LSTM).  
 
 ## Requirements
 All code in this project is implemented in [Python3.6+](https://www.python.org/downloads/).  
