@@ -96,7 +96,9 @@ class NB_Implement():
             X_train.append(sent_vector)
             y_train.append(int(line[0]))
         if self.sentence_vec_type == "concatenate":
-            X_train = sequence.pad_sequences(X_train, maxlen=self.MAX_SENT_LEN * self.vector_size, value=0)
+            # NOTE: 注意，这里的dtype是必须的，否则dtype默认值是'int32', 词向量所有的数值会被全部转换为0
+            X_train = sequence.pad_sequences(X_train, maxlen=self.MAX_SENT_LEN * self.vector_size, value=0,
+                                             dtype=np.float)
 
         X_val = list()
         y_val = list()
@@ -106,7 +108,8 @@ class NB_Implement():
             X_val.append(sent_vector)
             y_val.append(int(line[0]))
         if self.sentence_vec_type == "concatenate":
-            X_val = sequence.pad_sequences(X_val, maxlen=self.MAX_SENT_LEN * self.vector_size, value=0)
+            X_val = sequence.pad_sequences(X_val, maxlen=self.MAX_SENT_LEN * self.vector_size, value=0,
+                                           dtype=np.float)
 
         return np.array(X_train), np.array(y_train), np.array(X_val), np.array(y_val)
 
@@ -153,13 +156,16 @@ class NB_Implement():
         sentence = "这件 衣服 真的 太 好看 了 ！ 好想 买 啊 "
         sent_vec = np.array(self.gen_sentence_vec(sentence)).reshape(1, -1)  # shape: (1, 1000)
         if self.sentence_vec_type == "concatenate":
-            sent_vec = sequence.pad_sequences(sent_vec, maxlen=self.MAX_SENT_LEN * self.vector_size, value=0)
+            # NOTE: 注意，这里的dtype是必须的，否则dtype默认值是'int32', 词向量所有的数值会被全部转换为0
+            sent_vec = sequence.pad_sequences(sent_vec, maxlen=self.MAX_SENT_LEN * self.vector_size, value=0,
+                                              dtype=np.float)
         print(f"'{sentence}': {model.predict(sent_vec)}")  # 1: 负向
 
         sentence = "这个 电视 真 尼玛 垃圾 ， 老子 再也 不买 了"
         sent_vec = np.array(self.gen_sentence_vec(sentence)).reshape(1, -1)
         if self.sentence_vec_type == "concatenate":
-            sent_vec = sequence.pad_sequences(sent_vec, maxlen=self.MAX_SENT_LEN * self.vector_size, value=0)
+            sent_vec = sequence.pad_sequences(sent_vec, maxlen=self.MAX_SENT_LEN * self.vector_size, value=0,
+                                              dtype=np.float)
         print(f"'{sentence}': {model.predict(sent_vec)}")  # 1: 负向
 
 
