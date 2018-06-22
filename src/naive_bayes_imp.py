@@ -16,6 +16,9 @@ from keras.preprocessing import sequence
 from pyfasttext import FastText
 from sklearn.externals import joblib
 
+class Preprocessing():
+    pass
+
 
 class NB_Implement():
     def __init__(self):
@@ -36,7 +39,8 @@ class NB_Implement():
         self.MAX_SENT_LEN = 20  # DEBUG: 200 # self.get_sent_max_length()
 
     def set_sent_vec_type(self, sentence_vec_type):
-        assert self.sentence_vec_type in ["avg", "concatenate", "fasttext"], "self.sentence_vec_type must be in ['avg', 'fasttext', 'concatenate']"
+        assert self.sentence_vec_type in ["avg", "concatenate", "fasttext"], \
+            "self.sentence_vec_type must be in ['avg', 'fasttext', 'concatenate']"
         self.sentence_vec_type = sentence_vec_type
 
     def get_sent_max_length(self):
