@@ -33,7 +33,9 @@ class NB_Implement():
         # 句子的表示形式: {"avg": 向量和的平均, "fasttext": get_numpy_sentence_vector, "concatenate": 向量拼接和补齐}
         self.sentence_vec_type = "avg"
 
-        self.MAX_SENT_LEN = 20  # DEBUG: 200 # self.get_sent_max_length()
+        self.MAX_SENT_LEN = 36  # DEBUG: 超参数. self.get_sent_max_length()
+        # TODO: using gridsearchcv.
+        # 100: 50.22%, 80: 50.23%, 60: 55.92%, 50: 69.11%, 40: 68.91%, 36: 69.34%, 30: 69.22%, 20: 69.17%, 10: 67.07%
 
     def set_sent_vec_type(self, sentence_vec_type):
         assert self.sentence_vec_type in ["avg", "concatenate", "fasttext"], "self.sentence_vec_type must be in ['avg', 'fasttext', 'concatenate']"
@@ -96,7 +98,9 @@ class NB_Implement():
             X_train.append(sent_vector)
             y_train.append(int(line[0]))
         if self.sentence_vec_type == "concatenate":
-            X_train = sequence.pad_sequences(X_train, maxlen=self.MAX_SENT_LEN * self.vector_size, value=0)
+            # NOTE: 注意，这里的dtype是必须的，否则dtype默认值是'int32', 词向量所有的数值会被全部转换为0
+            X_train = sequence.pad_sequences(X_train, maxlen=self.MAX_SENT_LEN * self.vector_size, value=0,
+                                             dtype=np.float)
 
         X_val = list()
         y_val = list()
@@ -106,7 +110,8 @@ class NB_Implement():
             X_val.append(sent_vector)
             y_val.append(int(line[0]))
         if self.sentence_vec_type == "concatenate":
-            X_val = sequence.pad_sequences(X_val, maxlen=self.MAX_SENT_LEN * self.vector_size, value=0)
+            X_val = sequence.pad_sequences(X_val, maxlen=self.MAX_SENT_LEN * self.vector_size, value=0,
+                                           dtype=np.float)
 
         return np.array(X_train), np.array(y_train), np.array(X_val), np.array(y_val)
 
@@ -152,18 +157,21 @@ class NB_Implement():
         model = joblib.load(model_path)
         sentence = "这件 衣服 真的 太 好看 了 ！ 好想 买 啊 "
         sent_vec = np.array(self.gen_sentence_vec(sentence)).reshape(1, -1)  # shape: (1, 1000)
-        print(f"sent_vec: {sent_vec.tolist()}")
+        # print(f"sent_vec: {sent_vec.tolist()}")
         if self.sentence_vec_type == "concatenate":
-            sent_vec = sequence.pad_sequences(sent_vec, maxlen=self.MAX_SENT_LEN * self.vector_size, value=0)
-            print(f"sent_vec: {sent_vec.tolist()}")
+            # NOTE: 注意，这里的dtype是必须的，否则dtype默认值是'int32', 词向量所有的数值会被全部转换为0
+            sent_vec = sequence.pad_sequences(sent_vec, maxlen=self.MAX_SENT_LEN * self.vector_size, value=0,
+                                              dtype=np.float)
+            # print(f"sent_vec: {sent_vec.tolist()}")
         print(f"'{sentence}': {model.predict(sent_vec)}")  # 1: 负向
 
         sentence = "这个 电视 真 尼玛 垃圾 ， 老子 再也 不买 了"
         sent_vec = np.array(self.gen_sentence_vec(sentence)).reshape(1, -1)
-        print(f"sent_vec: {sent_vec.tolist()}")
+        # print(f"sent_vec: {sent_vec.tolist()}")
         if self.sentence_vec_type == "concatenate":
-            sent_vec = sequence.pad_sequences(sent_vec, maxlen=self.MAX_SENT_LEN * self.vector_size, value=0)
-            print(f"sent_vec: {sent_vec.tolist()}")
+            sent_vec = sequence.pad_sequences(sent_vec, maxlen=self.MAX_SENT_LEN * self.vector_size, value=0,
+                                              dtype=np.float)
+            # print(f"sent_vec: {sent_vec.tolist()}")
         print(f"'{sentence}': {model.predict(sent_vec)}")  # 1: 负向
 
 
@@ -181,8 +189,8 @@ if __name__ == "__main__":
     print(f'concatenate: {nb.gen_sentence_vec(sentence)}')
     """
 
-    """
     # 1. avg
+    print("\navg:")
     nb.set_sent_vec_type("avg")
     X_train, y_train, X_val, y_val = nb.gen_train_val_data()
     # print(X_train.shape, y_train.shape)  # (19998, 100) (19998,)
@@ -193,9 +201,10 @@ if __name__ == "__main__":
     model_path = "../data/output/models/bayes_model"
     nb.evaluate_bayes(model_path, X_val, y_val)  # 73.72%
     nb.predict_bayes(model_path)
-    print("--" * 30)
+    print("--" * 30, "\n")
 
     # 2. fasttext
+    print("\nfasttext:")
     nb.set_sent_vec_type("fasttext")
     X_train, y_train, X_val, y_val = nb.gen_train_val_data()
 
@@ -204,15 +213,16 @@ if __name__ == "__main__":
     model_path = "../data/output/models/bayes_model"
     nb.evaluate_bayes(model_path, X_val, y_val)  # 74.32%
     nb.predict_bayes(model_path)
-    print("--" * 30)
-    """
+    print("--" * 30, "\n")
 
     # 3. concatenate
+    print("\nconcatenate:")
     nb.set_sent_vec_type("concatenate")
     X_train, y_train, X_val, y_val = nb.gen_train_val_data()
+    # print(X_train)
 
     nb.train_bayes(X_train, y_train)
 
     model_path = "../data/output/models/bayes_model"
-    nb.evaluate_bayes(model_path, X_val, y_val)
+    nb.evaluate_bayes(model_path, X_val, y_val)  # 69.34%
     nb.predict_bayes(model_path)
