@@ -19,8 +19,8 @@ And all the essential packages are listed in `requirements.txt`, you can install
 ## 训练与对比(准确率)
 | Algorithm | Accuracy |
 | :---: | :---: |
+| Naive-Bayes | {avg: 73.72%, fasttext: 74.32%, matrix: %} |
 | Decision-Tree | 0.6907 |
-| Naive-Bayes | 0.7437 |
 | KNN | 0.7909 |
 | SVM | 0.8303 |
 | MLP | 0.8359 |
