@@ -19,7 +19,7 @@ And all the essential packages are listed in `requirements.txt`, you can install
 
 ## 训练与对比(准确率)
 | Algorithm | Accuracy(avg) | Accuracy(fasttext) | Accuracy(concatenate) |
-| :---: | :---: | :---: | :---: | :---: |
+| :---: | :---: | :---: | :---: |
 | Naive-Bayes | 73.72% | 74.32% | 69.34% |
 | Decision-Tree | 65.27% | 66.84% | 55.34% |
 | KNN | 0.7909 |
