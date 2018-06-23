@@ -18,12 +18,12 @@ And all the essential packages are listed in `requirements.txt`, you can install
 2.使用预训练的词向量模型，对句子进行向量化  
 
 ## 训练与对比(准确率)
-| Algorithm | Accuracy(avg) | Accuracy(fasttext) | Accuracy(concatenate) |
+| Algorithm | Accuracy(avg) | Accuracy(fasttext) | Accuracy(matrix) |
 | :---: | :---: | :---: | :---: |
 | Naive-Bayes | 73.72% | 74.32% | 69.34% |
 | Decision-Tree | 65.27% | 66.84% | 55.34% |
-| KNN | 0.7909 |
-| SVM | 0.8303 |
-| MLP | 0.8359 |
-| CNN | 0.8376 |
-| LSTM | 0.8505 |
+| KNN | 76.33% | 76.68% |  |
+| SVM | 78.96% | 78.73% |  |
+| MLP | 0.8359 |  |  |
+| CNN | 0.8376 |  |  |
+| LSTM | 0.8505 |  |  |

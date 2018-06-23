@@ -136,6 +136,12 @@ class SentimentAnalysis:
         elif self.algorithm_name == "dt":  # Decision Tree
             from sklearn import tree
             model_cls = tree.DecisionTreeClassifier()
+        elif self.algorithm_name == "knn":
+            from sklearn.neighbors import KNeighborsClassifier
+            model_cls = KNeighborsClassifier(n_neighbors=14)  # TODO: gridsearchcv
+        elif self.algorithm_name == "svm":
+            from sklearn.svm import SVC
+            model_cls = SVC(kernel="linear")
 
         return model_cls
 
@@ -148,7 +154,6 @@ class SentimentAnalysis:
         :return: 训练好的模型
         """
         model_cls.fit(X_train, y_train)
-        # print(result)
         return model_cls  # model
 
     def model_save(self, model):
@@ -224,7 +229,7 @@ if __name__ == "__main__":
     """
 
     sent_vec_type_list = ["avg", "fasttext", "concatenate"]
-    sent_vec_type = sent_vec_type_list[2]
+    sent_vec_type = sent_vec_type_list[1]
     print(f"\n{sent_vec_type} and", end=" ")
     preprocess_obj.set_sent_vec_type(sent_vec_type)
 
@@ -234,7 +239,7 @@ if __name__ == "__main__":
 
     sent_analyse = SentimentAnalysis()
     algorithm_list = ["nb", "dt", "knn", "svm", "mlp", "cnn", "lstm"]
-    algorithm_name = algorithm_list[1]
+    algorithm_name = algorithm_list[3]
     print(f"{algorithm_name}:")
     sent_analyse.pick_algorithm(algorithm_name)
     model_cls = sent_analyse.get_model_class()
