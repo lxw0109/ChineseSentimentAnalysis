@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # coding: utf-8
-# File: sentiment_analysis_ml.py
+# File: sentiment_analysis_dl.py
 # Author: lxw
-# Date: 12/21/17 8:13 AM
+# Date: 12/21/17 9:23 AM
 
 """
 基于预训练词向量模型的情感分类
@@ -12,8 +12,6 @@ import numpy as np
 import time
 
 from keras.preprocessing import sequence
-from sklearn.externals import joblib
-from sklearn.model_selection import GridSearchCV
 
 from .preprocessing import Preprocessing
 
