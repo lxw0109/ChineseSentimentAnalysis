@@ -159,6 +159,8 @@ class SentimentAnalysis:
         :return: 训练好的模型
         """
         model_cls.fit(X_train, y_train)
+        if self.algorithm_name in {"svm", "knn"}:
+            print(model_cls.best_params_)
         return model_cls  # model
 
     def model_save(self, model):
@@ -234,7 +236,7 @@ if __name__ == "__main__":
     """
 
     sent_vec_type_list = ["avg", "fasttext", "concatenate"]
-    sent_vec_type = sent_vec_type_list[2]
+    sent_vec_type = sent_vec_type_list[1]
     print(f"\n{sent_vec_type} and", end=" ")
     preprocess_obj.set_sent_vec_type(sent_vec_type)
 
@@ -244,7 +246,7 @@ if __name__ == "__main__":
 
     sent_analyse = SentimentAnalysis()
     algorithm_list = ["nb", "dt", "knn", "svm", "mlp", "cnn", "lstm"]
-    algorithm_name = algorithm_list[3]
+    algorithm_name = algorithm_list[2]
     print(f"{algorithm_name}:")
     sent_analyse.pick_algorithm(algorithm_name)
     model_cls = sent_analyse.get_model_class()
