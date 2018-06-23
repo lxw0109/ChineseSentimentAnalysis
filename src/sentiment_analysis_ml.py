@@ -5,7 +5,7 @@
 # Date: 12/21/17 8:13 AM
 
 """
-基于预训练词向量模型的情感分类
+基于"预训练词向量模型"和"机器学习"的情感分类(sklearn)
 """
 
 import numpy as np
@@ -25,12 +25,11 @@ class SentimentAnalysis:
         self.model_path = f"{self.model_path_prefix}{self.algorithm_name}.model"
 
     def pick_algorithm(self, algorithm_name):
-        assert algorithm_name in ["nb", "dt", "knn", "svm", "mlp", "cnn", "lstm"], \
-            "algorithm_name must be in ['nb', 'dt', 'knn', 'svm', 'mlp', 'cnn', 'lstm']"
+        assert algorithm_name in ["nb", "dt", "knn", "svm"], "algorithm_name must be in ['nb', 'dt', 'knn', 'svm']"
         self.algorithm_name = algorithm_name
         self.model_path = f"{self.model_path_prefix}{self.algorithm_name}.model"
 
-    def get_model_class(self):
+    def model_build(self):
         model_cls = None
         if self.algorithm_name == "nb":  # Naive Bayes
             from sklearn.naive_bayes import GaussianNB
@@ -134,11 +133,11 @@ if __name__ == "__main__":
     # print(X_val.shape, y_val.shape)  # (5998, 100) (5998,)
 
     sent_analyse = SentimentAnalysis()
-    algorithm_list = ["nb", "dt", "knn", "svm", "mlp", "cnn", "lstm"]
+    algorithm_list = ["nb", "dt", "knn", "svm"]
     algorithm_name = algorithm_list[2]
     print(f"{algorithm_name}:")
     sent_analyse.pick_algorithm(algorithm_name)
-    model_cls = sent_analyse.get_model_class()
+    model_cls = sent_analyse.model_build()
     model = sent_analyse.model_train(model_cls, X_train, y_train)
     sent_analyse.model_save(model)
     sent_analyse.model_evaluate(model, X_val, y_val)

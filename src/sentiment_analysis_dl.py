@@ -5,62 +5,64 @@
 # Date: 12/21/17 9:23 AM
 
 """
-基于预训练词向量模型的情感分类
+基于"预训练词向量模型"和"深度学习"的情感分类(keras)
 """
 
 import numpy as np
 import time
 
+from keras.layers import Dense
+from keras.layers import Dropout
+from keras.models import Sequential
 from keras.preprocessing import sequence
 
 from .preprocessing import Preprocessing
 
 
 class SentimentAnalysis:
-    def __init__(self):
+    def __init__(self, preprocess_obj):
         self.model_path_prefix="../data/output/models/"
-        self.algorithm_name = "nb"
-        self.model_path = f"{self.model_path_prefix}{self.algorithm_name}.model"
+        self.algorithm_name = "nn"
+        self.model_path = f"{self.model_path_prefix}{self.algorithm_name}"
+        self.preprocess_obj = preprocess_obj
+        self.bath_size = 32
+        self.epochs = 1000
 
     def pick_algorithm(self, algorithm_name):
-        assert algorithm_name in ["nb", "dt", "knn", "svm", "mlp", "cnn", "lstm"], \
-            "algorithm_name must be in ['nb', 'dt', 'knn', 'svm', 'mlp', 'cnn', 'lstm']"
+        assert algorithm_name in ["nn", "cnn", "lstm"], "algorithm_name must be in ['nn', 'cnn', 'lstm']"
         self.algorithm_name = algorithm_name
-        self.model_path = f"{self.model_path_prefix}{self.algorithm_name}.model"
+        self.model_path = f"{self.model_path_prefix}{self.algorithm_name}"
 
-    def get_model_class(self):
-        model_cls = None
-        if self.algorithm_name == "nb":  # Naive Bayes
-            from sklearn.naive_bayes import GaussianNB
-            model_cls = GaussianNB()
-        elif self.algorithm_name == "dt":  # Decision Tree
-            from sklearn import tree
-            model_cls = tree.DecisionTreeClassifier()
-        elif self.algorithm_name == "knn":
-            from sklearn.neighbors import KNeighborsClassifier
-            model_cls = KNeighborsClassifier()
-            tuned_parameters = [{"n_neighbors": range(1, 20)}]
-            model_cls = GridSearchCV(model_cls, tuned_parameters, cv=5, scoring="precision_weighted")
-        elif self.algorithm_name == "svm":
-            from sklearn.svm import SVC
-            model_cls = SVC(kernel="linear")
-            tuned_parameters = [{"kernel": ["rbf"], "gamma": [1e-3, 1e-4], "C": [1, 10, 100, 1000]},
-                                {"kernel": ["linear"], "C": [1, 10, 100, 1000]}]
-            model_cls = GridSearchCV(model_cls, tuned_parameters, cv=5, scoring="precision_weighted")
+    def model_build(self):
+        model_cls = Sequential()
+        if self.algorithm_name == "nn":  # Neural Network(Multi-Layer Perceptron)
+            # activation is essential for Dense, otherwise linear is used.
+            model_cls.add(Dense(64, input_shape=(self.preprocess_obj.vector_size, self.preprocess_obj.MAX_SENT_LEN),
+                                activation="relu"))
+            model_cls.add(Dropout(0.25))
+            model_cls.add(Dense(64, activation="relu"))
+            model_cls.add(Dropout(0.25))
+            model_cls.add(Dense(1, activation="sigmoid"))
+            model_cls.compile(loss="binary_crossentropy", optimizer="adam", metrics=["accuracy"])
+        elif self.algorithm_name == "cnn":
+            pass
+        elif self.algorithm_name == "lstm":
+            pass
 
         return model_cls
 
-    def model_train(self, model_cls, X_train, y_train):
+    def model_train(self, model_cls, X_train, y_train, X_val, y_val):
         """
         分类器模型的训练
         :param model_cls: 所使用的算法的类的定义，尚未训练的模型
         :param X_train: 
         :param y_train: 
+        :param X_val: 
+        :param y_val: 
         :return: 训练好的模型
         """
-        model_cls.fit(X_train, y_train)
-        if self.algorithm_name in {"svm", "knn"}:
-            print(model_cls.best_params_)
+        model_cls.fit(X_train, y_train, batch_size=self.bath_size, epochs=self.epochs,
+                      validation_data=(X_val, y_val))
         return model_cls  # model
 
     def model_save(self, model):
@@ -69,7 +71,7 @@ class SentimentAnalysis:
         :param model: 训练好的模型对象
         :return: None
         """
-        joblib.dump(model, self.model_path)
+        model.save(self.model_path)
 
     def model_evaluate(self, model, X_val, y_val):
         """
@@ -99,7 +101,7 @@ class SentimentAnalysis:
         :return: None
         """
         sentence = "这件 衣服 真的 太 好看 了 ！ 好想 买 啊 "
-        sent_vec = np.array(preprocess_obj.gen_sentence_vec(sentence)).reshape(1, -1)  # shape: (1, 1000)
+        sent_vec = np.array(preprocess_obj.gen_sentence_vec(sentence))  # shape: (1, 1000)
         # print(f"sent_vec: {sent_vec.tolist()}")
         if preprocess_obj.sentence_vec_type == "concatenate":
             # NOTE: 注意，这里的dtype是必须的，否则dtype默认值是'int32', 词向量所有的数值会被全部转换为0
@@ -109,7 +111,7 @@ class SentimentAnalysis:
         print(f"'{sentence}': {model.predict(sent_vec)}")  # 0: 正向
 
         sentence = "这个 电视 真 尼玛 垃圾 ， 老子 再也 不买 了"
-        sent_vec = np.array(preprocess_obj.gen_sentence_vec(sentence)).reshape(1, -1)
+        sent_vec = np.array(preprocess_obj.gen_sentence_vec(sentence))
         # print(f"sent_vec: {sent_vec.tolist()}")
         if preprocess_obj.sentence_vec_type == "concatenate":
             sent_vec = sequence.pad_sequences(sent_vec, maxlen=preprocess_obj.MAX_SENT_LEN * preprocess_obj.vector_size,
@@ -132,11 +134,11 @@ if __name__ == "__main__":
     # print(X_val.shape, y_val.shape)  # (5998, 100) (5998,)
 
     sent_analyse = SentimentAnalysis()
-    algorithm_list = ["nb", "dt", "knn", "svm", "mlp", "cnn", "lstm"]
+    algorithm_list = ["nn", "cnn", "lstm"]
     algorithm_name = algorithm_list[2]
     print(f"{algorithm_name}:")
     sent_analyse.pick_algorithm(algorithm_name)
-    model_cls = sent_analyse.get_model_class()
+    model_cls = sent_analyse.model_build()
     model = sent_analyse.model_train(model_cls, X_train, y_train)
     sent_analyse.model_save(model)
     sent_analyse.model_evaluate(model, X_val, y_val)
