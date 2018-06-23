@@ -234,7 +234,7 @@ if __name__ == "__main__":
     """
 
     sent_vec_type_list = ["avg", "fasttext", "concatenate"]
-    sent_vec_type = sent_vec_type_list[1]
+    sent_vec_type = sent_vec_type_list[2]
     print(f"\n{sent_vec_type} and", end=" ")
     preprocess_obj.set_sent_vec_type(sent_vec_type)
 

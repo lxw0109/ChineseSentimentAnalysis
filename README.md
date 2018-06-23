@@ -9,15 +9,13 @@ And all the essential packages are listed in `requirements.txt`, you can install
 
 ## Data Preparation
 **1.数据集**  
-使用电影评论数据作为训练数据集  
-训练数据集20000(正向10000, 负向10000)  
-测试数据集6000条(正向3000, 负向3000)  
+使用电影评论数据作为训练数据集. 其中, 训练数据集20000条(正负向各10000条); 测试数据集6000条(正负向各3000条)  
 
-**2.数据处理**  
-1.去除停用词, 并使用jieba进行分词
+**2.数据预处理**  
+1.去除停用词, 并使用jieba进行分词  
 2.使用预训练的词向量模型，对句子进行向量化  
 
-## 训练与对比(准确率)
+## 各种实现方法准确率对比
 | Algorithm | Accuracy(avg) | Accuracy(fasttext) | Accuracy(matrix) |
 | :---: | :---: | :---: | :---: |
 | Naive-Bayes | 73.72% | 74.32% | 69.34% |
