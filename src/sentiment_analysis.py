@@ -15,6 +15,7 @@ from collections import Counter
 from keras.preprocessing import sequence
 from pyfasttext import FastText
 from sklearn.externals import joblib
+from sklearn.model_selection import GridSearchCV
 
 
 class Preprocessing:
@@ -35,7 +36,6 @@ class Preprocessing:
         self.sentence_vec_type = "fasttext"
 
         self.MAX_SENT_LEN = 30  # DEBUG: 超参数. self.get_sent_max_length()
-        # TODO: using gridsearchcv.
         # 100: 50.22%, 80: 50.23%, 70: 50.33%, 60: 55.92%, 50: 69.11%, 40: 68.91%, 36: 69.34%, 30: 69.22%, 20: 69.17%, 10: 67.07%
 
     def set_sent_vec_type(self, sentence_vec_type):
@@ -138,10 +138,15 @@ class SentimentAnalysis:
             model_cls = tree.DecisionTreeClassifier()
         elif self.algorithm_name == "knn":
             from sklearn.neighbors import KNeighborsClassifier
-            model_cls = KNeighborsClassifier(n_neighbors=14)  # TODO: gridsearchcv
+            model_cls = KNeighborsClassifier()
+            tuned_parameters = [{"n_neighbors": range(1, 20)}]
+            model_cls = GridSearchCV(model_cls, tuned_parameters, cv=5, scoring="precision_weighted")
         elif self.algorithm_name == "svm":
             from sklearn.svm import SVC
             model_cls = SVC(kernel="linear")
+            tuned_parameters = [{"kernel": ["rbf"], "gamma": [1e-3, 1e-4], "C": [1, 10, 100, 1000]},
+                                {"kernel": ["linear"], "C": [1, 10, 100, 1000]}]
+            model_cls = GridSearchCV(model_cls, tuned_parameters, cv=5, scoring="precision_weighted")
 
         return model_cls
 
