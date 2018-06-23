@@ -20,8 +20,8 @@ from sklearn.externals import joblib
 class Preprocessing:
     def __init__(self):
         start_time = time.time()
-        self.model = FastText("../data/input/models/sg_pyfasttext.bin")  # DEBUG
-        # self.model = FastText("../data/input/models/880w_fasttext_skip_gram.bin")
+        # self.model = FastText("../data/input/models/sg_pyfasttext.bin")  # DEBUG
+        self.model = FastText("../data/input/models/880w_fasttext_skip_gram.bin")
         end_time = time.time()
         print(f"Loading word vector model cost: {end_time - start_time:.2f}s")
 
@@ -188,12 +188,12 @@ class SentimentAnalysis:
         """
         sentence = "这件 衣服 真的 太 好看 了 ！ 好想 买 啊 "
         sent_vec = np.array(preprocess_obj.gen_sentence_vec(sentence)).reshape(1, -1)  # shape: (1, 1000)
-        print(f"sent_vec: {sent_vec.tolist()}")
+        # print(f"sent_vec: {sent_vec.tolist()}")
         if preprocess_obj.sentence_vec_type == "concatenate":
             # NOTE: 注意，这里的dtype是必须的，否则dtype默认值是'int32', 词向量所有的数值会被全部转换为0
             sent_vec = sequence.pad_sequences(sent_vec, maxlen=preprocess_obj.MAX_SENT_LEN * preprocess_obj.vector_size,
                                               value=0, dtype=np.float)
-            print(f"sent_vec: {sent_vec.tolist()}")
+            # print(f"sent_vec: {sent_vec.tolist()}")
         print(f"'{sentence}': {model.predict(sent_vec)}")  # 0: 正向
 
         sentence = "这个 电视 真 尼玛 垃圾 ， 老子 再也 不买 了"
@@ -207,6 +207,7 @@ class SentimentAnalysis:
 
 
 if __name__ == "__main__":
+    start_time = time.time()
     preprocess_obj = Preprocessing()
     """
     preprocess_obj.get_sent_max_length()
@@ -223,19 +224,24 @@ if __name__ == "__main__":
     """
 
     sent_vec_type_list = ["avg", "fasttext", "concatenate"]
-    sent_vec_type = sent_vec_type_list[2]
+    sent_vec_type = sent_vec_type_list[1]
     print(f"\n{sent_vec_type}:")
     preprocess_obj.set_sent_vec_type(sent_vec_type)
 
     X_train, X_val, y_train, y_val = preprocess_obj.gen_train_val_data()
-    print(X_train.shape, y_train.shape)  # (19998, 100) (19998,)
-    print(X_val.shape, y_val.shape)  # (5998, 100) (5998,)
+    # print(X_train.shape, y_train.shape)  # (19998, 100) (19998,)
+    # print(X_val.shape, y_val.shape)  # (5998, 100) (5998,)
 
     sent_analyse = SentimentAnalysis()
-    sent_analyse.pick_algorithm("dt")
+    algorithm_list = ["nb", "dt", "knn", "svm", "mlp", "cnn", "lstm"]
+    algorithm_name = algorithm_list[1]
+    print(f"\n{algorithm_name}:")
+    sent_analyse.pick_algorithm(algorithm_name)
     model_cls = sent_analyse.get_model_class()
     model = sent_analyse.model_train(model_cls, X_train, y_train)
     sent_analyse.model_save(model)
     sent_analyse.model_evaluate(model, X_val, y_val)
     sent_analyse.model_predict(model, preprocess_obj)
-    print("--" * 30, "\n")
+    end_time = time.time()
+    print(f"Program Running Cost {end_time -start_time:.2f}s")
+
