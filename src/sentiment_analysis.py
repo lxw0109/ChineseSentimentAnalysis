@@ -34,9 +34,9 @@ class Preprocessing:
         # 句子的表示形式: {"avg": 向量和的平均, "fasttext": get_numpy_sentence_vector, "concatenate": 向量拼接和补齐}
         self.sentence_vec_type = "fasttext"
 
-        self.MAX_SENT_LEN = 36  # DEBUG: 超参数. self.get_sent_max_length()
+        self.MAX_SENT_LEN = 30  # DEBUG: 超参数. self.get_sent_max_length()
         # TODO: using gridsearchcv.
-        # 100: 50.22%, 80: 50.23%, 60: 55.92%, 50: 69.11%, 40: 68.91%, 36: 69.34%, 30: 69.22%, 20: 69.17%, 10: 67.07%
+        # 100: 50.22%, 80: 50.23%, 70: 50.33%, 60: 55.92%, 50: 69.11%, 40: 68.91%, 36: 69.34%, 30: 69.22%, 20: 69.17%, 10: 67.07%
 
     def set_sent_vec_type(self, sentence_vec_type):
         assert sentence_vec_type in ["avg", "concatenate", "fasttext"], \
@@ -224,8 +224,8 @@ if __name__ == "__main__":
     """
 
     sent_vec_type_list = ["avg", "fasttext", "concatenate"]
-    sent_vec_type = sent_vec_type_list[1]
-    print(f"\n{sent_vec_type}:")
+    sent_vec_type = sent_vec_type_list[2]
+    print(f"\n{sent_vec_type} and", end=" ")
     preprocess_obj.set_sent_vec_type(sent_vec_type)
 
     X_train, X_val, y_train, y_val = preprocess_obj.gen_train_val_data()
@@ -235,7 +235,7 @@ if __name__ == "__main__":
     sent_analyse = SentimentAnalysis()
     algorithm_list = ["nb", "dt", "knn", "svm", "mlp", "cnn", "lstm"]
     algorithm_name = algorithm_list[1]
-    print(f"\n{algorithm_name}:")
+    print(f"{algorithm_name}:")
     sent_analyse.pick_algorithm(algorithm_name)
     model_cls = sent_analyse.get_model_class()
     model = sent_analyse.model_train(model_cls, X_train, y_train)
@@ -243,5 +243,5 @@ if __name__ == "__main__":
     sent_analyse.model_evaluate(model, X_val, y_val)
     sent_analyse.model_predict(model, preprocess_obj)
     end_time = time.time()
-    print(f"Program Running Cost {end_time -start_time:.2f}s")
+    print(f"\nProgram Running Cost {end_time -start_time:.2f}s")
 
