@@ -8,6 +8,7 @@ botocore==1.10.42
 bz2file==0.98
 certifi==2018.4.16
 chardet==3.0.4
+cycler==0.10.0
 cysignals==1.7.1
 Cython==0.28.3
 decorator==4.3.0
@@ -27,8 +28,11 @@ jmespath==0.9.3
 Keras==2.2.0
 Keras-Applications==1.0.2
 Keras-Preprocessing==1.0.1
+kiwisolver==1.0.1
 Markdown==2.6.11
+matplotlib==2.2.2
 numpy==1.14.5
+pandas==0.23.1
 parso==0.2.1
 pexpect==4.6.0
 pickleshare==0.7.4
@@ -37,12 +41,15 @@ protobuf==3.6.0
 ptyprocess==0.5.2
 pyfasttext==0.4.5
 Pygments==2.2.0
+pyparsing==2.2.0
 python-dateutil==2.7.3
+pytz==2018.4
 PyYAML==3.12
 requests==2.19.1
 s3transfer==0.1.13
 scikit-learn==0.19.1
 scipy==1.1.0
+seaborn==0.8.1
 simplegeneric==0.8.1
 six==1.11.0
 sklearn==0.0
