@@ -12,6 +12,9 @@ import numpy as np
 import pandas as pd
 import time
 
+from keras.callbacks import EarlyStopping
+from keras.callbacks import ModelCheckpoint
+from keras.callbacks import ReduceLROnPlateau
 from keras.layers import Dense
 from keras.layers import Dropout
 from keras.models import Sequential
@@ -62,17 +65,33 @@ class SentimentAnalysis:
         :param y_val: 
         :return: 训练好的模型
         """
-        model_cls.fit(X_train, y_train, batch_size=self.bath_size, epochs=self.epochs,
-                      validation_data=(X_val, y_val))
+        early_stopping = EarlyStopping(monitor="val_loss", patience=10)
+        lr_reduction = ReduceLROnPlateau(monitor="val_loss", patience=5, verbose=1, factor=0.2, min_lr=1e-5)
+        # 检查最好模型: 只要有提升, 就保存一次. 保存到多个模型文件
+        model_path = f"../data/output/models/{self.algorithm_name}_best_model_{epoch:02d}_{val_loss:.2f}.hdf5"
+        checkpoint = ModelCheckpoint(filepath=model_path, monitor="val_loss", verbose=1, save_best_only=True,
+                                     mode="min")
+
+        hist_obj = model_cls.fit(X_train, y_train, batch_size=self.bath_size, epochs=self.epochs, verbose=1,
+                             validation_data=(X_val, y_val), callbacks=[early_stopping, lr_reduction, checkpoint])
+        self.plot_hist(hist_obj.history)
         return model_cls  # model
 
-    def model_save(self, model):
-        """
-        分类器模型的保存
-        :param model: 训练好的模型对象
-        :return: None
-        """
-        model.save(self.model_path)
+    def plot_hist(self, history):
+        import matplotlib.pyplot as plt
+
+        if not history:
+            return
+        # 绘制训练集和验证集的曲线
+        plt.plot(history["acc"], label="Training Accuracy", color="green", linewidth=1)
+        plt.plot(history["loss"], label="Training Loss", color="red", linewidth=1)
+        plt.plot(history["val_acc"], label="Validation Accuracy", color="purple", linewidth=1)
+        plt.plot(history["val_loss"], label="Validation Loss", color="blue", linewidth=1)
+        plt.grid(True)  # 设置网格形式
+        plt.xlabel("epoch")
+        plt.ylabel("acc-loss")  # 给x, y轴加注释
+        plt.legend(loc="upper right")  # 设置图例显示位置
+        plt.show()
 
     def model_evaluate(self, model, X_val, y_val):
         """
@@ -82,7 +101,6 @@ class SentimentAnalysis:
         :param y_val: 
         :return: None
         """
-        # model = joblib.load(self.model_path)
         y_val = list(y_val)
         correct = 0
         y_predict = model.predict(X_val)
@@ -94,6 +112,12 @@ class SentimentAnalysis:
         score = correct / len(y_predict)
         print(f"'{self.algorithm_name}' Classification Accuray:{score*100:.2f}%")
 
+        # Model Evaluation
+        print("model.metrics:{0}, model.metrics_names:{1}".format(model.metrics, model.metrics_names))
+        scores = model.evaluate(X_val, y_val)
+        loss, accuracy = scores[0], scores[1] * 100
+        print("Loss: {0:.2f}, Model Accuracy: {1:.2f}%".format(loss, accuracy))
+
     def model_predict(self, model, preprocess_obj):
         """
         模型测试
@@ -101,23 +125,12 @@ class SentimentAnalysis:
         :param preprocess_obj: Preprocessing类对象
         :return: None
         """
-        sentence = "这件 衣服 真的 太 好看 了 ！ 好想 买 啊 "
+        sentence = "这 真的是 一部 非常 优秀 电影 作品"
         sent_vec = np.array(preprocess_obj.gen_sentence_vec(sentence))  # shape: (1, 1000)
-        # print(f"sent_vec: {sent_vec.tolist()}")
-        if preprocess_obj.sentence_vec_type == "concatenate":
-            # NOTE: 注意，这里的dtype是必须的，否则dtype默认值是'int32', 词向量所有的数值会被全部转换为0
-            sent_vec = sequence.pad_sequences(sent_vec, maxlen=preprocess_obj.MAX_SENT_LEN * preprocess_obj.vector_size,
-                                              value=0, dtype=np.float)
-            # print(f"sent_vec: {sent_vec.tolist()}")
         print(f"'{sentence}': {model.predict(sent_vec)}")  # 0: 正向
 
         sentence = "这个 电视 真 尼玛 垃圾 ， 老子 再也 不买 了"
         sent_vec = np.array(preprocess_obj.gen_sentence_vec(sentence))
-        # print(f"sent_vec: {sent_vec.tolist()}")
-        if preprocess_obj.sentence_vec_type == "concatenate":
-            sent_vec = sequence.pad_sequences(sent_vec, maxlen=preprocess_obj.MAX_SENT_LEN * preprocess_obj.vector_size,
-                                              value=0, dtype=np.float)
-            # print(f"sent_vec: {sent_vec.tolist()}")
         print(f"'{sentence}': {model.predict(sent_vec)}")  # 1: 负向
 
         sentence_df = pd.read_csv("../data/input/training_set.txt", sep="\t", header=None, names=["label", "sentence"])
@@ -130,12 +143,6 @@ class SentimentAnalysis:
             count += 1
             sentence = sentence.strip()
             sent_vec = np.array(preprocess_obj.gen_sentence_vec(sentence)).reshape(1, -1)
-            # print(f"sent_vec: {sent_vec.tolist()}")
-            if preprocess_obj.sentence_vec_type == "concatenate":
-                sent_vec = sequence.pad_sequences(sent_vec,
-                                                  maxlen=preprocess_obj.MAX_SENT_LEN * preprocess_obj.vector_size,
-                                                  value=0, dtype=np.float)
-                # print(f"sent_vec: {sent_vec.tolist()}")
             print(f"'{sentence}': {model.predict(sent_vec)}")  # 0: 正向, 1: 负向
             if count > 10:
                 break
@@ -146,7 +153,7 @@ if __name__ == "__main__":
     preprocess_obj = Preprocessing()
 
     sent_vec_type_list = ["avg", "fasttext", "concatenate"]
-    sent_vec_type = sent_vec_type_list[1]
+    sent_vec_type = sent_vec_type_list[0]
     print(f"\n{sent_vec_type} and", end=" ")
     preprocess_obj.set_sent_vec_type(sent_vec_type)
 
@@ -154,16 +161,16 @@ if __name__ == "__main__":
     # print(X_train.shape, y_train.shape)  # (19998, 100) (19998,)
     # print(X_val.shape, y_val.shape)  # (5998, 100) (5998,)
 
-    sent_analyse = SentimentAnalysis(preprocess_obj, sent_vec_type)
-    algorithm_list = ["nn", "cnn", "lstm"]
-    algorithm_name = algorithm_list[2]
+    sent_analyse = SentimentAnalysis(sent_vec_type)
+    algorithm_list = ["nb", "dt", "knn", "svm"]
+    algorithm_name = algorithm_list[0]
     print(f"{algorithm_name}:")
     sent_analyse.pick_algorithm(algorithm_name, sent_vec_type)
+    # """
     model_cls = sent_analyse.model_build()
-    model = sent_analyse.model_train(model_cls, X_train, X_val, y_train, y_val)
-    sent_analyse.model_save(model)
+    model = sent_analyse.model_train(model_cls, X_train, y_train)
+    # """
     sent_analyse.model_evaluate(model, X_val, y_val)
     sent_analyse.model_predict(model, preprocess_obj)
     end_time = time.time()
     print(f"\nProgram Running Cost {end_time -start_time:.2f}s")
-
