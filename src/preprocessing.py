@@ -5,7 +5,10 @@
 # Date: 12/20/17 8:10 AM
 
 
+import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import seaborn as sns
 import time
 
 from keras.preprocessing import sequence
@@ -28,10 +31,25 @@ class Preprocessing:
         print(f"self.vector_size:{self.vector_size}, self.vocab_size: {self.vocab_size}")
 
         # 句子的表示形式: {"avg": 向量和的平均, "fasttext": get_numpy_sentence_vector, "concatenate": 向量拼接和补齐}
-        self.sentence_vec_type = "fasttext"
+        self.sentence_vec_type = "concatenate"  # TODO
 
         self.MAX_SENT_LEN = 30  # DEBUG: 超参数. self.get_sent_max_length()
         # 100: 50.22%, 80: 50.23%, 70: 50.33%, 60: 55.92%, 50: 69.11%, 40: 68.91%, 36: 69.34%, 30: 69.22%, 20: 69.17%, 10: 67.07%
+
+    @classmethod
+    def data_analysis(cls):
+        train_df = pd.read_csv("../data/input/training_set.txt", sep="\t", header=None, names=["label", "sentence"])
+        val_df = pd.read_csv("../data/input/validation_set.txt", sep="\t", header=None, names=["label", "sentence"])
+        y_train = train_df["label"]
+        y_val = val_df["label"]
+        sns.set(style="white", context="notebook", palette="deep")
+        # 查看样本数据分布情况(各个label数据是否均匀分布)
+        sns.countplot(y_train)
+        plt.show()
+        sns.countplot(y_val)
+        plt.show()
+        print(y_train.value_counts())
+        print(y_val.value_counts())
 
     def set_sent_vec_type(self, sentence_vec_type):
         assert sentence_vec_type in ["avg", "concatenate", "fasttext"], \
@@ -85,30 +103,34 @@ class Preprocessing:
 
     def gen_train_val_data(self):
         # 构造训练数据 & 验证数据
-        X_train = list()  # <list of ndarray>
-        y_train = list()
-        for line in open("../data/input/training_set.txt"):
-            line = line.strip().split("\t")
-            sent_vector = self.gen_sentence_vec(line[-1])
-            X_train.append(sent_vector)
-            y_train.append(int(line[0]))
+        train_df = pd.read_csv("../data/input/training_set.txt", sep="\t", header=None, names=["label", "sentence"])
+        val_df = pd.read_csv("../data/input/validation_set.txt", sep="\t", header=None, names=["label", "sentence"])
+        # 打乱训练集的顺序. TODO: 不打乱感觉训练出来的模型是有问题的?(好看那句总是预测结果是1？)
+        train_df = train_df.sample(frac=1, random_state=1)
+        # val_df = val_df.sample(frac=1, random_state=1)  # 验证集不用打乱
+
+        X_train = train_df["sentence"]
+        X_train_vec = list()
+        for sentence in X_train:
+            sent_vector = self.gen_sentence_vec(sentence)
+            X_train_vec.append(sent_vector)
+        y_train = train_df["label"]  # <Series>
+
+        X_val = val_df["sentence"]
+        X_val_vec = list()
+        for sentence in X_val:
+            sent_vector = self.gen_sentence_vec(sentence)
+            X_val_vec.append(sent_vector)
+        y_val = val_df["label"]  # <Series>
+
         if self.sentence_vec_type == "concatenate":
             # NOTE: 注意，这里的dtype是必须的，否则dtype默认值是"int32", 词向量所有的数值会被全部转换为0
-            X_train = sequence.pad_sequences(X_train, maxlen=self.MAX_SENT_LEN * self.vector_size, value=0,
+            X_train_vec = sequence.pad_sequences(X_train_vec, maxlen=self.MAX_SENT_LEN * self.vector_size, value=0,
                                              dtype=np.float)
-
-        X_val = list()
-        y_val = list()
-        for line in open("../data/input/validation_set.txt"):
-            line = line.strip().split("\t")
-            sent_vector = self.gen_sentence_vec(line[-1])
-            X_val.append(sent_vector)
-            y_val.append(int(line[0]))
-        if self.sentence_vec_type == "concatenate":
-            X_val = sequence.pad_sequences(X_val, maxlen=self.MAX_SENT_LEN * self.vector_size, value=0,
+            X_val_vec = sequence.pad_sequences(X_val_vec, maxlen=self.MAX_SENT_LEN * self.vector_size, value=0,
                                            dtype=np.float)
 
-        return np.array(X_train), np.array(X_val), np.array(y_train), np.array(y_val)
+        return np.array(X_train_vec), np.array(X_val_vec), np.array(y_train), np.array(y_val)
 
 
 if __name__ == "__main__":
@@ -129,3 +151,5 @@ if __name__ == "__main__":
     # print(f"X_train: {X_train}\nX_val: {X_val}\ny_train: {y_train}\ny_val: {y_val}")
     print(f"X_train.shape: {X_train.shape}\nX_val.shape: {X_val.shape}\n"
           f"y_train.shape: {y_train.shape}\ny_val.shape: {y_val.shape}")
+
+    # Preprocessing.data_analysis()
