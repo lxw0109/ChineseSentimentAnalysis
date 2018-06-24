@@ -36,13 +36,15 @@ class SentimentAnalysis:
         self.algorithm_name = "nn"
         self.model_path = f"{self.model_path_prefix}{self.algorithm_name}_{sent_vec_type}"
         self.preprocess_obj = preprocess_obj
-        self.bath_size = 1024  # TODO
-        self.epochs = 1  # 1000  # TODO
+        self.sent_vec_type = sent_vec_type
+        self.bath_size = 512  # TODO
+        self.epochs = 1000  # TODO
 
     def pick_algorithm(self, algorithm_name, sent_vec_type):
         assert algorithm_name in ["nn", "cnn", "lstm"], "algorithm_name must be in ['nn', 'cnn', 'lstm']"
         self.algorithm_name = algorithm_name
         self.model_path = f"{self.model_path_prefix}{self.algorithm_name}_{sent_vec_type}"
+        self.sent_vec_type = sent_vec_type
 
     def model_build(self, input_shape):
         model_cls = Sequential()
@@ -95,9 +97,9 @@ class SentimentAnalysis:
         checkpoint = ModelCheckpoint(filepath=model_path, monitor="val_loss", verbose=1, save_best_only=True,
                                      mode="min")
 
-        hist_obj = model_cls.fit(X_train, y_train, batch_size=self.bath_size, epochs=self.epochs, verbose=1)
-        # validation_data=(X_val, y_val), callbacks=[early_stopping, lr_reduction, checkpoint])  # TODO
-        with open(f"../data/output/history_{self.algorithm_name}.pkl", "wb") as f:
+        hist_obj = model_cls.fit(X_train, y_train, batch_size=self.bath_size, epochs=self.epochs, verbose=1,
+                                 validation_data=(X_val, y_val), callbacks=[early_stopping, lr_reduction, checkpoint])
+        with open(f"../data/output/history_{self.algorithm_name}_{self.sent_vec_type}.pkl", "wb") as f:
             pickle.dump(hist_obj.history, f)
         return model_cls  # model
 
@@ -143,18 +145,27 @@ class SentimentAnalysis:
         """
         sentence = "这件 衣服 真的 太 好看 了 ！ 好想 买 啊 "  # TODO:
         sent_vec = np.array(self.preprocess_obj.gen_sentence_vec(sentence))  # shape: (70, 200)
-        sent_vec = sent_vec.reshape(1, sent_vec.shape[0], sent_vec.shape[1])
-        print(f"'{sentence}': {model.predict(sent_vec)}")  # 0: 正向
+        if self.sent_vec_type == "matrix":
+            sent_vec = sent_vec.reshape(1, sent_vec.shape[0], sent_vec.shape[1])
+        elif self.sent_vec_type == "avg" or self.sent_vec_type == "fasttext":
+            sent_vec = sent_vec.reshape(1, 1, sent_vec.shape[0])
+        print(f"'{sentence}': {np.argmax(model.predict(sent_vec))}")  # 0: 正向
 
         sentence = "这 真的是 一部 非常 优秀 电影 作品"
         sent_vec = np.array(self.preprocess_obj.gen_sentence_vec(sentence))
-        sent_vec = sent_vec.reshape(1, sent_vec.shape[0], sent_vec.shape[1])
-        print(f"'{sentence}': {model.predict(sent_vec)}")  # 0: 正向
+        if self.sent_vec_type == "matrix":
+            sent_vec = sent_vec.reshape(1, sent_vec.shape[0], sent_vec.shape[1])
+        elif self.sent_vec_type == "avg" or self.sent_vec_type == "fasttext":
+            sent_vec = sent_vec.reshape(1, 1, sent_vec.shape[0])
+        print(f"'{sentence}': {np.argmax(model.predict(sent_vec))}")  # 0: 正向
 
         sentence = "这个 电视 真 尼玛 垃圾 ， 老子 再也 不买 了"
         sent_vec = np.array(self.preprocess_obj.gen_sentence_vec(sentence))
-        sent_vec = sent_vec.reshape(1, sent_vec.shape[0], sent_vec.shape[1])
-        print(f"'{sentence}': {model.predict(sent_vec)}")  # 1: 负向
+        if self.sent_vec_type == "matrix":
+            sent_vec = sent_vec.reshape(1, sent_vec.shape[0], sent_vec.shape[1])
+        elif self.sent_vec_type == "avg" or self.sent_vec_type == "fasttext":
+            sent_vec = sent_vec.reshape(1, 1, sent_vec.shape[0])
+        print(f"'{sentence}': {np.argmax(model.predict(sent_vec))}")  # 1: 负向
 
         sentence_df = pd.read_csv("../data/input/training_set.txt", sep="\t", header=None, names=["label", "sentence"])
         sentence_df = sentence_df.sample(frac=1)
@@ -166,8 +177,11 @@ class SentimentAnalysis:
             count += 1
             sentence = sentence.strip()
             sent_vec = np.array(self.preprocess_obj.gen_sentence_vec(sentence))
-            sent_vec = sent_vec.reshape(1, sent_vec.shape[0], sent_vec.shape[1])
-            print(f"'{sentence}': {model.predict(sent_vec)}")  # 0: 正向, 1: 负向
+            if self.sent_vec_type == "matrix":
+                sent_vec = sent_vec.reshape(1, sent_vec.shape[0], sent_vec.shape[1])
+            elif self.sent_vec_type == "avg" or self.sent_vec_type == "fasttext":
+                sent_vec = sent_vec.reshape(1, 1, sent_vec.shape[0])
+            print(f"'{sentence}': {np.argmax(model.predict(sent_vec))}")  # 0: 正向, 1: 负向
             if count > 10:
                 break
 
@@ -177,7 +191,7 @@ if __name__ == "__main__":
     preprocess_obj = Preprocessing()
 
     sent_vec_type_list = ["avg", "fasttext", "matrix"]
-    sent_vec_type = sent_vec_type_list[2]
+    sent_vec_type = sent_vec_type_list[1]
     print(f"\n{sent_vec_type} and", end=" ")
     preprocess_obj.set_sent_vec_type(sent_vec_type)
 
@@ -192,7 +206,7 @@ if __name__ == "__main__":
 
     sent_analyse = SentimentAnalysis(preprocess_obj, sent_vec_type)
     algorithm_list = ["nn", "cnn", "lstm"]
-    algorithm_name = algorithm_list[2]
+    algorithm_name = algorithm_list[1]
     print(f"{algorithm_name}:")
     sent_analyse.pick_algorithm(algorithm_name, sent_vec_type)
     # """
