@@ -16,12 +16,13 @@ And all the essential packages are listed in `requirements.txt`, you can install
 2.使用预训练的词向量模型，对句子进行向量化  
 
 ## 各种实现方法准确率对比
-| Algorithm | Accuracy(avg) | Accuracy(fasttext) | Accuracy(matrix) |
-| :---: | :---: | :---: | :---: |
-| Naive-Bayes | 73.72% | 74.32% | 69.34%(拼接和补齐) |
-| Decision-Tree | 65.27% | 66.84% | 55.34%(拼接和补齐) |
-| KNN | 76.69%({'n_neighbors': 19}) | 77.43%({'n_neighbors': 17}) | /(拼接和补齐) |
-| SVM | 79.29%({'C': 1000, 'gamma': 0.001, 'kernel': 'rbf'}) | 78.93%({'C': 1000, 'kernel': 'linear'}) | /(拼接和补齐) |
-| NN(MLP) | 0.8359 |  |  |
-| CNN | 0.8376 |  |  |
-| LSTM | 0.8505 |  |  |
+| Algorithm | Accuracy(avg) | Accuracy(fasttext) | Accuracy(matrix) | 说明 |
+| :---: | :---: | :---: | :---: | :---: |
+| Naive-Bayes | 73.72% | 74.32% | 69.34%(拼接和补齐) | / |
+| Decision-Tree | 65.27% | 66.84% | 55.34%(拼接和补齐) | / |
+| KNN | 76.69%({'n_neighbors': 19}) | 77.43%({'n_neighbors': 17}) | /(拼接和补齐) | 使用GridSearchCV进行参数选择 |
+| SVM | 79.29%({'C': 1000, 'gamma': 0.001, 'kernel': 'rbf'}) | 78.93%({'C': 1000, 'kernel': 'linear'}) | /(拼接和补齐) | 使用GridSearchCV进行参数选择 |
+| NN(MLP) |  |  |  | EarlyStopping, ModelCheckpoint, ReduceLROnPlateau |
+| CNN |  |  | 81.34% | EarlyStopping, ModelCheckpoint, ReduceLROnPlateau |
+| LSTM | 78.76% | 77.26% | 84.06% | EarlyStopping, ModelCheckpoint, ReduceLROnPlateau |
+
