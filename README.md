@@ -22,7 +22,7 @@ And all the essential packages are listed in `requirements.txt`, you can install
 | Decision-Tree | 65.27% | 66.84% | 55.34%(拼接和补齐) | / |
 | KNN | 76.69%({'n_neighbors': 19}) | 77.43%({'n_neighbors': 17}) | /(拼接和补齐) | 使用GridSearchCV进行参数选择 |
 | SVM | 79.29%({'C': 1000, 'gamma': 0.001, 'kernel': 'rbf'}) | 78.93%({'C': 1000, 'kernel': 'linear'}) | /(拼接和补齐) | 使用GridSearchCV进行参数选择 |
-| NN(MLP) |  |  |  | EarlyStopping, ModelCheckpoint, ReduceLROnPlateau |
-| CNN |  |  | 81.34% | EarlyStopping, ModelCheckpoint, ReduceLROnPlateau |
-| LSTM | 78.76% | 77.26% | 84.06% | EarlyStopping, ModelCheckpoint, ReduceLROnPlateau |
+| NN(MLP) | 80.24% | 80.41% | / | 采用EarlyStopping, ModelCheckpoint, ReduceLROnPlateau |
+| CNN | / | / | 81.34% | 采用EarlyStopping, ModelCheckpoint, ReduceLROnPlateau |
+| LSTM | 78.76% | 77.26% | 84.06% | 采用EarlyStopping, ModelCheckpoint, ReduceLROnPlateau |
 
