@@ -159,13 +159,13 @@ if __name__ == "__main__":
 
     sent_analyse = SentimentAnalysis(sent_vec_type)
     algorithm_list = ["nb", "dt", "knn", "svm"]
-    algorithm_name = algorithm_list[3]
+    algorithm_name = algorithm_list[2]
     print(f"{algorithm_name}:")
     sent_analyse.pick_algorithm(algorithm_name, sent_vec_type)
-    """
     model_cls = sent_analyse.model_build()
     model = sent_analyse.model_train(model_cls, X_train, y_train)
     sent_analyse.model_save(model)
+    """
     """
     model = joblib.load(sent_analyse.model_path)
     sent_analyse.model_evaluate(model, X_val, y_val)
