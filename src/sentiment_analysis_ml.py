@@ -19,15 +19,15 @@ from preprocessing import Preprocessing
 
 
 class SentimentAnalysis:
-    def __init__(self):
+    def __init__(self, sent_vec_type):
         self.model_path_prefix="../data/output/models/"
         self.algorithm_name = "nb"
-        self.model_path = f"{self.model_path_prefix}{self.algorithm_name}.model"
+        self.model_path = f"{self.model_path_prefix}{self.algorithm_name}_{sent_vec_type}.model"
 
-    def pick_algorithm(self, algorithm_name):
+    def pick_algorithm(self, algorithm_name, sent_vec_type):
         assert algorithm_name in ["nb", "dt", "knn", "svm"], "algorithm_name must be in ['nb', 'dt', 'knn', 'svm']"
         self.algorithm_name = algorithm_name
-        self.model_path = f"{self.model_path_prefix}{self.algorithm_name}.model"
+        self.model_path = f"{self.model_path_prefix}{self.algorithm_name}_{sent_vec_type}..model"
 
     def model_build(self):
         model_cls = None
@@ -44,10 +44,15 @@ class SentimentAnalysis:
             model_cls = GridSearchCV(model_cls, tuned_parameters, cv=5, scoring="precision_weighted")
         elif self.algorithm_name == "svm":
             from sklearn.svm import SVC
+            """
+            # OK
             model_cls = SVC(kernel="linear")
             tuned_parameters = [{"kernel": ["rbf"], "gamma": [1e-3, 1e-4], "C": [1, 10, 100, 1000]},
                                 {"kernel": ["linear"], "C": [1, 10, 100, 1000]}]
             model_cls = GridSearchCV(model_cls, tuned_parameters, cv=5, scoring="precision_weighted")
+            """
+            model_cls = SVC(C=1000, gamma=1e-3, kernel="rbf")  # avg
+            # model_cls = SVC(C=1000, kernel="linear")  # fasttext
 
         return model_cls
 
@@ -60,8 +65,8 @@ class SentimentAnalysis:
         :return: 训练好的模型
         """
         model_cls.fit(X_train, y_train)
-        if self.algorithm_name in {"svm", "knn"}:
-            print(model_cls.best_params_)
+        # if self.algorithm_name in {"svm", "knn"}:
+        #     print(model_cls.best_params_)
         return model_cls  # model
 
     def model_save(self, model):
@@ -138,10 +143,9 @@ if __name__ == "__main__":
     start_time = time.time()
     preprocess_obj = Preprocessing()
 
-    """
     # 数据准备、模型训练、模型保存、模型评估、模型测试
     sent_vec_type_list = ["avg", "fasttext", "concatenate"]
-    sent_vec_type = sent_vec_type_list[1]
+    sent_vec_type = sent_vec_type_list[0]
     print(f"\n{sent_vec_type} and", end=" ")
     preprocess_obj.set_sent_vec_type(sent_vec_type)
 
@@ -149,11 +153,11 @@ if __name__ == "__main__":
     # print(X_train.shape, y_train.shape)  # (19998, 100) (19998,)
     # print(X_val.shape, y_val.shape)  # (5998, 100) (5998,)
 
-    sent_analyse = SentimentAnalysis()
+    sent_analyse = SentimentAnalysis(sent_vec_type)
     algorithm_list = ["nb", "dt", "knn", "svm"]
     algorithm_name = algorithm_list[3]
     print(f"{algorithm_name}:")
-    sent_analyse.pick_algorithm(algorithm_name)
+    sent_analyse.pick_algorithm(algorithm_name, sent_vec_type)
     model_cls = sent_analyse.model_build()
     model = sent_analyse.model_train(model_cls, X_train, y_train)
     sent_analyse.model_save(model)
@@ -161,17 +165,18 @@ if __name__ == "__main__":
     sent_analyse.model_predict(model, preprocess_obj)
     end_time = time.time()
     print(f"\nProgram Running Cost {end_time -start_time:.2f}s")
-    """
 
+    """
     # 模型导入、模型测试
-    sent_analyse = SentimentAnalysis()
+    sent_analyse = SentimentAnalysis(sent_vec_type)
     algorithm_list = ["nb", "dt", "knn", "svm"]
-    algorithm_name = algorithm_list[3]
+    algorithm_name = algorithm_list[0]
     print(f"{algorithm_name}:")
-    sent_analyse.pick_algorithm(algorithm_name)
+    sent_analyse.pick_algorithm(algorithm_name, sent_vec_type)
     model = joblib.load(sent_analyse.model_path)
 
     sent_analyse.model_predict(model, preprocess_obj)
     end_time = time.time()
     print(f"\nProgram Running Cost {end_time -start_time:.2f}s")
+    """
 

@@ -31,7 +31,7 @@ class Preprocessing:
         print(f"self.vector_size:{self.vector_size}, self.vocab_size: {self.vocab_size}")
 
         # 句子的表示形式: {"avg": 向量和的平均, "fasttext": get_numpy_sentence_vector, "concatenate": 向量拼接和补齐}
-        self.sentence_vec_type = "concatenate"  # TODO
+        self.sentence_vec_type = "avg"  # TODO
 
         self.MAX_SENT_LEN = 30  # DEBUG: 超参数. self.get_sent_max_length()
         # 100: 50.22%, 80: 50.23%, 70: 50.33%, 60: 55.92%, 50: 69.11%, 40: 68.91%, 36: 69.34%, 30: 69.22%, 20: 69.17%, 10: 67.07%
