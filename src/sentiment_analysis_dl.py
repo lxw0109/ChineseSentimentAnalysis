@@ -145,25 +145,31 @@ class SentimentAnalysis:
         """
         sentence = "这件 衣服 真的 太 好看 了 ！ 好想 买 啊 "  # TODO:
         sent_vec = np.array(self.preprocess_obj.gen_sentence_vec(sentence))  # shape: (70, 200)
-        if self.sent_vec_type == "matrix":
+        if self.sent_vec_type == "matrix":  # cnn or lstm
             sent_vec = sent_vec.reshape(1, sent_vec.shape[0], sent_vec.shape[1])
-        elif self.sent_vec_type == "avg" or self.sent_vec_type == "fasttext":
+        elif self.algorithm_name == "nn":  # nn.
+            sent_vec = sent_vec.reshape(1, sent_vec.shape[0])
+        elif self.algorithm_name == "lstm" and (self.sent_vec_type == "avg" or self.sent_vec_type == "fasttext"):  # lstm.
             sent_vec = sent_vec.reshape(1, 1, sent_vec.shape[0])
         print(f"'{sentence}': {np.argmax(model.predict(sent_vec))}")  # 0: 正向
 
         sentence = "这 真的是 一部 非常 优秀 电影 作品"
         sent_vec = np.array(self.preprocess_obj.gen_sentence_vec(sentence))
-        if self.sent_vec_type == "matrix":
+        if self.sent_vec_type == "matrix":  # cnn or lstm
             sent_vec = sent_vec.reshape(1, sent_vec.shape[0], sent_vec.shape[1])
-        elif self.sent_vec_type == "avg" or self.sent_vec_type == "fasttext":
+        elif self.algorithm_name == "nn":  # nn.
+            sent_vec = sent_vec.reshape(1, sent_vec.shape[0])
+        elif self.algorithm_name == "lstm" and (self.sent_vec_type == "avg" or self.sent_vec_type == "fasttext"):  # lstm.
             sent_vec = sent_vec.reshape(1, 1, sent_vec.shape[0])
         print(f"'{sentence}': {np.argmax(model.predict(sent_vec))}")  # 0: 正向
 
         sentence = "这个 电视 真 尼玛 垃圾 ， 老子 再也 不买 了"
         sent_vec = np.array(self.preprocess_obj.gen_sentence_vec(sentence))
-        if self.sent_vec_type == "matrix":
+        if self.sent_vec_type == "matrix":  # cnn or lstm
             sent_vec = sent_vec.reshape(1, sent_vec.shape[0], sent_vec.shape[1])
-        elif self.sent_vec_type == "avg" or self.sent_vec_type == "fasttext":
+        elif self.algorithm_name == "nn":  # nn.
+            sent_vec = sent_vec.reshape(1, sent_vec.shape[0])
+        elif self.algorithm_name == "lstm" and (self.sent_vec_type == "avg" or self.sent_vec_type == "fasttext"):  # lstm.
             sent_vec = sent_vec.reshape(1, 1, sent_vec.shape[0])
         print(f"'{sentence}': {np.argmax(model.predict(sent_vec))}")  # 1: 负向
 
@@ -177,9 +183,11 @@ class SentimentAnalysis:
             count += 1
             sentence = sentence.strip()
             sent_vec = np.array(self.preprocess_obj.gen_sentence_vec(sentence))
-            if self.sent_vec_type == "matrix":
+            if self.sent_vec_type == "matrix":  # cnn or lstm
                 sent_vec = sent_vec.reshape(1, sent_vec.shape[0], sent_vec.shape[1])
-            elif self.sent_vec_type == "avg" or self.sent_vec_type == "fasttext":
+            elif self.algorithm_name == "nn":  # nn.
+                sent_vec = sent_vec.reshape(1, sent_vec.shape[0])
+            elif self.algorithm_name == "lstm" and (self.sent_vec_type == "avg" or self.sent_vec_type == "fasttext"):  # lstm.
                 sent_vec = sent_vec.reshape(1, 1, sent_vec.shape[0])
             print(f"'{sentence}': {np.argmax(model.predict(sent_vec))}")  # 0: 正向, 1: 负向
             if count > 10:
@@ -190,27 +198,34 @@ if __name__ == "__main__":
     start_time = time.time()
     preprocess_obj = Preprocessing()
 
-    sent_vec_type_list = ["avg", "fasttext", "matrix"]
-    sent_vec_type = sent_vec_type_list[1]
+    sent_vec_type_list = ["avg", "fasttext", "matrix"]  # NN(MLP): 只能使用avg或fasttext. CNN: 只能使用matrix. LSTM: avg, fasttext, matrix均可.
+    sent_vec_type = sent_vec_type_list[0]
     print(f"\n{sent_vec_type} and", end=" ")
     preprocess_obj.set_sent_vec_type(sent_vec_type)
 
     X_train, X_val, y_train, y_val = preprocess_obj.gen_train_val_data()
     y_train = np_utils.to_categorical(y_train)
     y_val = np_utils.to_categorical(y_val)
-    if len(X_train.shape) == 2:  # avg or fasttext
-        X_train = X_train.reshape(X_train.shape[0], 1, X_train.shape[1])
-        X_val = X_val.reshape(X_val.shape[0], 1, X_val.shape[1])
-    print(X_train.shape, y_train.shape)  # (19998, 70, 200) (19998,)
-    print(X_val.shape, y_val.shape)  # (5998, 70, 200) (5998,)
 
     sent_analyse = SentimentAnalysis(preprocess_obj, sent_vec_type)
     algorithm_list = ["nn", "cnn", "lstm"]
-    algorithm_name = algorithm_list[1]
+    algorithm_name = algorithm_list[0]
+
+    if len(X_train.shape) == 2 and algorithm_name == "lstm":  # avg or fasttext
+        X_train = X_train.reshape(X_train.shape[0], 1, X_train.shape[1])
+        X_val = X_val.reshape(X_val.shape[0], 1, X_val.shape[1])
+        input_shape = (X_train.shape[1], X_train.shape[2])
+    elif algorithm_name == "nn":
+        input_shape = (X_train.shape[1],)
+    else:  # algorithm_name == "cnn" or (algorithm_name == "lstm" and len(X_train.shape) == 3)
+        input_shape = (X_train.shape[1], X_train.shape[2])
+    print(X_train.shape, y_train.shape)  # (19998, 200)/(19998, 70, 200) (19998,)
+    print(X_val.shape, y_val.shape)  # (5998, 200)/(5998, 70, 200) (5998,)
+
     print(f"{algorithm_name}:")
     sent_analyse.pick_algorithm(algorithm_name, sent_vec_type)
     # """
-    model_cls = sent_analyse.model_build(input_shape=(X_train.shape[1], X_train.shape[2]))
+    model_cls = sent_analyse.model_build(input_shape=input_shape)
     model = sent_analyse.model_train(model_cls, X_train, X_val, y_train, y_val)
     # """
     sent_analyse.model_evaluate(model, X_val, y_val)
