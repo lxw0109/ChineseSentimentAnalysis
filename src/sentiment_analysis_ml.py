@@ -28,7 +28,7 @@ class SentimentAnalysis:
     def pick_algorithm(self, algorithm_name, sent_vec_type):
         assert algorithm_name in ["nb", "dt", "knn", "svm"], "algorithm_name must be in ['nb', 'dt', 'knn', 'svm']"
         self.algorithm_name = algorithm_name
-        self.model_path = f"{self.model_path_prefix}{self.algorithm_name}_{sent_vec_type}..model"
+        self.model_path = f"{self.model_path_prefix}{self.algorithm_name}_{sent_vec_type}.model"
 
     def model_build(self):
         model_cls = None
@@ -124,7 +124,7 @@ class SentimentAnalysis:
             # print(f"sent_vec: {sent_vec.tolist()}")
         print(f"'{sentence}': {model.predict(sent_vec)}")  # 1: 负向
 
-        sentence_df = pd.read_csv("../data/input/training_set.txt", sep="\t", header=None, names=["label", "sentence"])
+        sentence_df = pd.read_csv("../data/input/validation_set.txt", sep="\t", header=None, names=["label", "sentence"])
         sentence_df = sentence_df.sample(frac=1)
         sentence_series = sentence_df["sentence"]
         label_series = sentence_df["label"]
@@ -148,7 +148,6 @@ if __name__ == "__main__":
     start_time = time.time()
     preprocess_obj = Preprocessing()
 
-    # 数据准备、模型训练、模型保存、模型评估、模型测试
     sent_vec_type_list = ["avg", "fasttext", "concatenate"]
     sent_vec_type = sent_vec_type_list[0]
     print(f"\n{sent_vec_type} and", end=" ")
@@ -160,28 +159,17 @@ if __name__ == "__main__":
 
     sent_analyse = SentimentAnalysis(sent_vec_type)
     algorithm_list = ["nb", "dt", "knn", "svm"]
-    algorithm_name = algorithm_list[3]
+    algorithm_name = algorithm_list[0]
     print(f"{algorithm_name}:")
     sent_analyse.pick_algorithm(algorithm_name, sent_vec_type)
+    # """
     model_cls = sent_analyse.model_build()
     model = sent_analyse.model_train(model_cls, X_train, y_train)
     sent_analyse.model_save(model)
+    # """
+    model = joblib.load(sent_analyse.model_path)
     sent_analyse.model_evaluate(model, X_val, y_val)
     sent_analyse.model_predict(model, preprocess_obj)
     end_time = time.time()
     print(f"\nProgram Running Cost {end_time -start_time:.2f}s")
-
-    """
-    # 模型导入、模型测试
-    sent_analyse = SentimentAnalysis(sent_vec_type)
-    algorithm_list = ["nb", "dt", "knn", "svm"]
-    algorithm_name = algorithm_list[0]
-    print(f"{algorithm_name}:")
-    sent_analyse.pick_algorithm(algorithm_name, sent_vec_type)
-    model = joblib.load(sent_analyse.model_path)
-
-    sent_analyse.model_predict(model, preprocess_obj)
-    end_time = time.time()
-    print(f"\nProgram Running Cost {end_time -start_time:.2f}s")
-    """
 
