@@ -5,10 +5,10 @@
 # Date: 12/20/17 8:10 AM
 
 
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import seaborn as sns
+# import seaborn as sns
 import time
 
 from keras.preprocessing import sequence
