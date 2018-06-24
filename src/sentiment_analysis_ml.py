@@ -9,6 +9,7 @@
 """
 
 import numpy as np
+import pandas as pd
 import time
 
 from keras.preprocessing import sequence
@@ -123,20 +124,24 @@ class SentimentAnalysis:
             # print(f"sent_vec: {sent_vec.tolist()}")
         print(f"'{sentence}': {model.predict(sent_vec)}")  # 1: 负向
 
+        sentence_df = pd.read_csv("../data/input/training_set.txt", sep="\t", header=None, names=["label", "sentence"])
+        sentence_df = sentence_df.sample(frac=1)
+        sentence_series = sentence_df["sentence"]
+        label_series = sentence_df["label"]
+        print(f"label_series: {label_series.iloc[:11]}")
         count = 0
-        with open("../data/input/training_set.txt") as f:
-            for line in f:
-                count += 1
-                sentence = line.strip().split("\t")[1]
-                sent_vec = np.array(preprocess_obj.gen_sentence_vec(sentence)).reshape(1, -1)
+        for sentence in sentence_series:
+            count += 1
+            sentence = sentence.strip()
+            sent_vec = np.array(preprocess_obj.gen_sentence_vec(sentence)).reshape(1, -1)
+            # print(f"sent_vec: {sent_vec.tolist()}")
+            if preprocess_obj.sentence_vec_type == "concatenate":
+                sent_vec = sequence.pad_sequences(sent_vec, maxlen=preprocess_obj.MAX_SENT_LEN * preprocess_obj.vector_size,
+                                                  value=0, dtype=np.float)
                 # print(f"sent_vec: {sent_vec.tolist()}")
-                if preprocess_obj.sentence_vec_type == "concatenate":
-                    sent_vec = sequence.pad_sequences(sent_vec, maxlen=preprocess_obj.MAX_SENT_LEN * preprocess_obj.vector_size,
-                                                      value=0, dtype=np.float)
-                    # print(f"sent_vec: {sent_vec.tolist()}")
-                print(f"'{sentence}': {model.predict(sent_vec)}")  # 1: 负向
-                if count > 10:
-                    break
+            print(f"'{sentence}': {model.predict(sent_vec)}")  # 0: 正向, 1: 负向
+            if count > 10:
+                break
 
 
 if __name__ == "__main__":
