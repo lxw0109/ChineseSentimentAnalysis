@@ -128,7 +128,7 @@ class SentimentAnalysis:
         sentence_df = sentence_df.sample(frac=1)
         sentence_series = sentence_df["sentence"]
         label_series = sentence_df["label"]
-        print(f"label_series: {label_series.iloc[:10]}")
+        print(f"label_series: {label_series.iloc[:11]}")
         count = 0
         for sentence in sentence_series:
             count += 1
