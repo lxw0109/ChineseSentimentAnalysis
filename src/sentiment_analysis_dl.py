@@ -103,11 +103,11 @@ class SentimentAnalysis:
             pickle.dump(hist_obj.history, f)
         return model_cls  # model
 
-    def plot_hist(self):
+    def plot_hist(self, history_filename):
         import matplotlib.pyplot as plt
 
         history = None
-        with open(f"../data/output/history/history_{self.algorithm_name}.pkl", "rb") as f:
+        with open(f"../data/output/{history_filename}.pkl", "rb") as f:
             history = pickle.load(f)
 
         if not history:
@@ -197,6 +197,7 @@ class SentimentAnalysis:
 if __name__ == "__main__":
     start_time = time.time()
     preprocess_obj = Preprocessing()
+    '''
 
     sent_vec_type_list = ["avg", "fasttext", "matrix"]  # NN(MLP): 只能使用avg或fasttext. CNN: 只能使用matrix. LSTM: avg, fasttext, matrix均可.
     sent_vec_type = sent_vec_type_list[0]
@@ -230,5 +231,8 @@ if __name__ == "__main__":
     # """
     sent_analyse.model_evaluate(model, X_val, y_val)
     sent_analyse.model_predict(model)
+    '''
+    sent_analyse = SentimentAnalysis(preprocess_obj, "")
+    sent_analyse.plot_hist("history_nn_fasttext")
     end_time = time.time()
     print(f"\nProgram Running Cost {end_time -start_time:.2f}s")
