@@ -15,7 +15,7 @@ from keras.preprocessing import sequence
 from sklearn.externals import joblib
 from sklearn.model_selection import GridSearchCV
 
-from .preprocessing import Preprocessing
+from preprocessing import Preprocessing
 
 
 class SentimentAnalysis:
@@ -118,11 +118,28 @@ class SentimentAnalysis:
             # print(f"sent_vec: {sent_vec.tolist()}")
         print(f"'{sentence}': {model.predict(sent_vec)}")  # 1: 负向
 
+        count = 0
+        with open("../data/input/training_set.txt") as f:
+            for line in f:
+                count += 1
+                sentence = line.strip().split("\t")[1]
+                sent_vec = np.array(preprocess_obj.gen_sentence_vec(sentence)).reshape(1, -1)
+                # print(f"sent_vec: {sent_vec.tolist()}")
+                if preprocess_obj.sentence_vec_type == "concatenate":
+                    sent_vec = sequence.pad_sequences(sent_vec, maxlen=preprocess_obj.MAX_SENT_LEN * preprocess_obj.vector_size,
+                                                      value=0, dtype=np.float)
+                    # print(f"sent_vec: {sent_vec.tolist()}")
+                print(f"'{sentence}': {model.predict(sent_vec)}")  # 1: 负向
+                if count > 10:
+                    break
+
 
 if __name__ == "__main__":
     start_time = time.time()
     preprocess_obj = Preprocessing()
 
+    """
+    # 数据准备、模型训练、模型保存、模型评估、模型测试
     sent_vec_type_list = ["avg", "fasttext", "concatenate"]
     sent_vec_type = sent_vec_type_list[1]
     print(f"\n{sent_vec_type} and", end=" ")
@@ -134,13 +151,26 @@ if __name__ == "__main__":
 
     sent_analyse = SentimentAnalysis()
     algorithm_list = ["nb", "dt", "knn", "svm"]
-    algorithm_name = algorithm_list[2]
+    algorithm_name = algorithm_list[3]
     print(f"{algorithm_name}:")
     sent_analyse.pick_algorithm(algorithm_name)
     model_cls = sent_analyse.model_build()
     model = sent_analyse.model_train(model_cls, X_train, y_train)
     sent_analyse.model_save(model)
     sent_analyse.model_evaluate(model, X_val, y_val)
+    sent_analyse.model_predict(model, preprocess_obj)
+    end_time = time.time()
+    print(f"\nProgram Running Cost {end_time -start_time:.2f}s")
+    """
+
+    # 模型导入、模型测试
+    sent_analyse = SentimentAnalysis()
+    algorithm_list = ["nb", "dt", "knn", "svm"]
+    algorithm_name = algorithm_list[3]
+    print(f"{algorithm_name}:")
+    sent_analyse.pick_algorithm(algorithm_name)
+    model = joblib.load(sent_analyse.model_path)
+
     sent_analyse.model_predict(model, preprocess_obj)
     end_time = time.time()
     print(f"\nProgram Running Cost {end_time -start_time:.2f}s")
