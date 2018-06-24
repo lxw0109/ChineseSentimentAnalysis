@@ -28,7 +28,7 @@ class SentimentAnalysis:
     def pick_algorithm(self, algorithm_name, sent_vec_type):
         assert algorithm_name in ["nb", "dt", "knn", "svm"], "algorithm_name must be in ['nb', 'dt', 'knn', 'svm']"
         self.algorithm_name = algorithm_name
-        self.model_path = f"{self.model_path_prefix}{self.algorithm_name}_{sent_vec_type}..model"
+        self.model_path = f"{self.model_path_prefix}{self.algorithm_name}_{sent_vec_type}.model"
 
     def model_build(self):
         model_cls = None
@@ -124,7 +124,7 @@ class SentimentAnalysis:
             # print(f"sent_vec: {sent_vec.tolist()}")
         print(f"'{sentence}': {model.predict(sent_vec)}")  # 1: 负向
 
-        sentence_df = pd.read_csv("../data/input/training_set.txt", sep="\t", header=None, names=["label", "sentence"])
+        sentence_df = pd.read_csv("../data/input/validation_set.txt", sep="\t", header=None, names=["label", "sentence"])
         sentence_df = sentence_df.sample(frac=1)
         sentence_series = sentence_df["sentence"]
         label_series = sentence_df["label"]
@@ -157,6 +157,7 @@ if __name__ == "__main__":
     X_train, X_val, y_train, y_val = preprocess_obj.gen_train_val_data()
     # print(X_train.shape, y_train.shape)  # (19998, 100) (19998,)
     # print(X_val.shape, y_val.shape)  # (5998, 100) (5998,)
+    """
 
     sent_analyse = SentimentAnalysis(sent_vec_type)
     algorithm_list = ["nb", "dt", "knn", "svm"]
@@ -175,13 +176,12 @@ if __name__ == "__main__":
     # 模型导入、模型测试
     sent_analyse = SentimentAnalysis(sent_vec_type)
     algorithm_list = ["nb", "dt", "knn", "svm"]
-    algorithm_name = algorithm_list[0]
+    algorithm_name = algorithm_list[3]
     print(f"{algorithm_name}:")
     sent_analyse.pick_algorithm(algorithm_name, sent_vec_type)
     model = joblib.load(sent_analyse.model_path)
-
+    sent_analyse.model_evaluate(model, X_val, y_val)
     sent_analyse.model_predict(model, preprocess_obj)
     end_time = time.time()
     print(f"\nProgram Running Cost {end_time -start_time:.2f}s")
-    """
 
