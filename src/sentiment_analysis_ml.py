@@ -105,7 +105,7 @@ class SentimentAnalysis:
         :param preprocess_obj: Preprocessing类对象
         :return: None
         """
-        sentence = "这件 衣服 真的 太 好看 了 ！ 好想 买 啊 "
+        sentence = "这 真的是 一部 非常 优秀 电影 作品"
         sent_vec = np.array(preprocess_obj.gen_sentence_vec(sentence)).reshape(1, -1)  # shape: (1, 1000)
         # print(f"sent_vec: {sent_vec.tolist()}")
         if preprocess_obj.sentence_vec_type == "concatenate":
@@ -159,14 +159,14 @@ if __name__ == "__main__":
 
     sent_analyse = SentimentAnalysis(sent_vec_type)
     algorithm_list = ["nb", "dt", "knn", "svm"]
-    algorithm_name = algorithm_list[0]
+    algorithm_name = algorithm_list[2]
     print(f"{algorithm_name}:")
     sent_analyse.pick_algorithm(algorithm_name, sent_vec_type)
-    # """
     model_cls = sent_analyse.model_build()
     model = sent_analyse.model_train(model_cls, X_train, y_train)
     sent_analyse.model_save(model)
-    # """
+    """
+    """
     model = joblib.load(sent_analyse.model_path)
     sent_analyse.model_evaluate(model, X_val, y_val)
     sent_analyse.model_predict(model, preprocess_obj)
