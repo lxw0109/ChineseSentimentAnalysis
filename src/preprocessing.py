@@ -30,11 +30,13 @@ class Preprocessing:
         # self.vector_size:200, self.vocab_size: 925242
         print(f"self.vector_size:{self.vector_size}, self.vocab_size: {self.vocab_size}")
 
-        # 句子的表示形式: {"avg": 向量和的平均, "fasttext": get_numpy_sentence_vector, "concatenate": 向量拼接和补齐}
-        self.sentence_vec_type = "avg"  # TODO
+        # 句子的表示形式:
+        # {"avg": 向量和的平均, "fasttext": get_numpy_sentence_vector, "concatenate": 向量拼接和补齐, "matrix": 矩阵}
+        self.sentence_vec_type = "matrix"
 
-        self.MAX_SENT_LEN = 30  # DEBUG: 超参数. self.get_sent_max_length()
-        # 100: 50.22%, 80: 50.23%, 70: 50.33%, 60: 55.92%, 50: 69.11%, 40: 68.91%, 36: 69.34%, 30: 69.22%, 20: 69.17%, 10: 67.07%
+        self.MAX_SENT_LEN = 70  # DEBUG: 超参数. self.get_sent_max_length()
+        # 对于"concatenate": self.MAX_SENT_LEN = 30, 取其他不同值的结果: 100: 50.22%, 80: 50.23%, 70: 50.33%, 60: 55.92%, 50: 69.11%, 40: 68.91%, 36: 69.34%, 30: 69.22%, 20: 69.17%, 10: 67.07%
+        # 对于"matrix": self.MAX_SENT_LEN = 70, 取其他不同值的结果: TODO:
 
     @classmethod
     def data_analysis(cls):
@@ -52,8 +54,8 @@ class Preprocessing:
         print(y_val.value_counts())
 
     def set_sent_vec_type(self, sentence_vec_type):
-        assert sentence_vec_type in ["avg", "concatenate", "fasttext"], \
-            "sentence_vec_type must be in ['avg', 'fasttext', 'concatenate']"
+        assert sentence_vec_type in ["avg", "concatenate", "fasttext", "matrix"], \
+            "sentence_vec_type must be in ['avg', 'fasttext', 'concatenate', 'matrix']"
         self.sentence_vec_type = sentence_vec_type
 
     def get_sent_max_length(self):  # NOT_USED
@@ -83,16 +85,21 @@ class Preprocessing:
 
         word_list = sentence.split(" ")
         if self.sentence_vec_type == "concatenate":
-            """
-            word_len = len(word_list)
-            sentence_matrix = np.empty(word_len, dtype=list)
-            for idx, word in enumerate(word_list):
-                sentence_matrix[idx] = self.model.get_numpy_vector(word)
-            """
             sentence_vector = self.model.get_numpy_vector(word_list[0])
             for word in word_list[1:]:
                 sentence_vector = np.hstack((sentence_vector, self.model.get_numpy_vector(word)))
             return sentence_vector  # NOTE: 对于concatenate情况, 每个句子的sentence_vector是不一样长的
+        if self.sentence_vec_type == "matrix":  # for Deep Learning.
+            sentence_matrix = []
+            for word in word_list[-self.MAX_SENT_LEN:]:  # NOTE: 截取后面的应该是要好些(参考https://github.com/lxw0109/SentimentClassification_UMICH_SI650/blob/master/src/LSTM_wo_pretrained_vector.py#L86)
+                sentence_matrix.append(self.model.get_numpy_vector(word))
+            length = len(sentence_matrix)
+            # 一定成立，因为上面做了切片截取
+            assert length <= self.MAX_SENT_LEN, "CRITICAL ERROR: len(sentence_matrix) > self.MAX_SENT_LEN."
+            # 参数中的matrix类型为list of ndarray, 返回值的matrix是ndarray of ndarray
+            sentence_matrix = np.pad(sentence_matrix, pad_width=((0, self.MAX_SENT_LEN - length), (0, 0)),
+                                     mode="constant", constant_values=-1)
+            return sentence_matrix
         else:  # self.sentence_vec_type == "avg":
             sentence_vector = np.zeros(self.vector_size)  # <ndarray>
             # print(f"type(sentence_vector): {type(sentence_vector)}")
