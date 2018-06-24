@@ -20,18 +20,18 @@ from .preprocessing import Preprocessing
 
 
 class SentimentAnalysis:
-    def __init__(self, preprocess_obj):
+    def __init__(self, preprocess_obj, sent_vec_type):
         self.model_path_prefix="../data/output/models/"
         self.algorithm_name = "nn"
-        self.model_path = f"{self.model_path_prefix}{self.algorithm_name}"
+        self.model_path = f"{self.model_path_prefix}{self.algorithm_name}_{sent_vec_type}"
         self.preprocess_obj = preprocess_obj
         self.bath_size = 32
         self.epochs = 1000
 
-    def pick_algorithm(self, algorithm_name):
+    def pick_algorithm(self, algorithm_name, sent_vec_type):
         assert algorithm_name in ["nn", "cnn", "lstm"], "algorithm_name must be in ['nn', 'cnn', 'lstm']"
         self.algorithm_name = algorithm_name
-        self.model_path = f"{self.model_path_prefix}{self.algorithm_name}"
+        self.model_path = f"{self.model_path_prefix}{self.algorithm_name}_{sent_vec_type}"
 
     def model_build(self):
         model_cls = Sequential()
@@ -51,7 +51,7 @@ class SentimentAnalysis:
 
         return model_cls
 
-    def model_train(self, model_cls, X_train, y_train, X_val, y_val):
+    def model_train(self, model_cls, X_train, X_val, y_train, y_val):
         """
         分类器模型的训练
         :param model_cls: 所使用的算法的类的定义，尚未训练的模型
@@ -133,13 +133,13 @@ if __name__ == "__main__":
     # print(X_train.shape, y_train.shape)  # (19998, 100) (19998,)
     # print(X_val.shape, y_val.shape)  # (5998, 100) (5998,)
 
-    sent_analyse = SentimentAnalysis()
+    sent_analyse = SentimentAnalysis(preprocess_obj, sent_vec_type)
     algorithm_list = ["nn", "cnn", "lstm"]
     algorithm_name = algorithm_list[2]
     print(f"{algorithm_name}:")
-    sent_analyse.pick_algorithm(algorithm_name)
+    sent_analyse.pick_algorithm(algorithm_name, sent_vec_type)
     model_cls = sent_analyse.model_build()
-    model = sent_analyse.model_train(model_cls, X_train, y_train)
+    model = sent_analyse.model_train(model_cls, X_train, X_val, y_train, y_val)
     sent_analyse.model_save(model)
     sent_analyse.model_evaluate(model, X_val, y_val)
     sent_analyse.model_predict(model, preprocess_obj)
