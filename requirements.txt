@@ -20,7 +20,7 @@ grpcio==1.12.1
 h5py==2.8.0
 html5lib==0.9999999
 idna==2.7
-ipython==6.4.0
+ipython==7.16.3
 ipython-genutils==0.2.0
 jedi==0.12.0
 jieba==0.39
